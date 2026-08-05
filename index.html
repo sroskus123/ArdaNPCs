@@ -1,0 +1,1886 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Český praktický manuál tvorby questů, dialogů, podmínek a commandů v modu ArdaNPCs.">
+  <title>ArdaNPCs — Kronika tvorby questů</title>
+  <style>
+    :root {
+      --bg: #090b0b;
+      --bg-soft: #101310;
+      --paper: #151711;
+      --paper-2: #1b1d15;
+      --panel: rgba(22, 24, 17, .94);
+      --panel-light: rgba(32, 34, 24, .93);
+      --ink: #efe8d2;
+      --muted: #aaa78f;
+      --gold: #d9ad45;
+      --gold-2: #f0d47b;
+      --bronze: #8c6530;
+      --green: #7ea26b;
+      --green-bright: #a7ce8c;
+      --red: #c15d4d;
+      --blue: #75a5b3;
+      --line: rgba(217, 173, 69, .28);
+      --shadow: 0 18px 55px rgba(0, 0, 0, .42);
+      --radius: 14px;
+      --max: 1480px;
+      --sidebar: 282px;
+      --sans: "Segoe UI", Inter, system-ui, -apple-system, sans-serif;
+      --serif: Georgia, "Times New Roman", serif;
+      --mono: "Cascadia Code", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font: 16px/1.62 var(--sans);
+      background:
+        radial-gradient(circle at 82% 5%, rgba(112, 143, 80, .13), transparent 29rem),
+        radial-gradient(circle at 5% 24%, rgba(180, 117, 37, .10), transparent 26rem),
+        repeating-linear-gradient(135deg, rgba(255,255,255,.012) 0 1px, transparent 1px 9px),
+        var(--bg);
+    }
+
+    a { color: var(--gold-2); }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    code, kbd {
+      font-family: var(--mono);
+      font-size: .92em;
+    }
+    code {
+      padding: .12em .34em;
+      color: #f3dca1;
+      background: rgba(0,0,0,.36);
+      border: 1px solid rgba(217,173,69,.18);
+      border-radius: 5px;
+      overflow-wrap: anywhere;
+    }
+    kbd {
+      display: inline-block;
+      min-width: 1.8em;
+      padding: .08em .45em;
+      text-align: center;
+      color: #fff5d6;
+      background: #2a2a21;
+      border: 1px solid #69624d;
+      border-bottom-width: 3px;
+      border-radius: 5px;
+    }
+
+    .topbar {
+      position: sticky;
+      z-index: 50;
+      top: 0;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-height: 72px;
+      padding: 10px max(18px, calc((100vw - var(--max)) / 2));
+      background: rgba(9, 11, 10, .91);
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 8px 35px rgba(0,0,0,.35);
+      backdrop-filter: blur(14px);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      flex: 0 0 auto;
+      min-width: 245px;
+    }
+    .brand-mark {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      color: var(--gold-2);
+      font: 700 22px var(--serif);
+      border: 1px solid var(--gold);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, rgba(217,173,69,.23), transparent 60%),
+        #12140f;
+      box-shadow: inset 0 0 0 4px #0b0c0a, 0 0 24px rgba(217,173,69,.14);
+    }
+    .brand strong {
+      display: block;
+      color: #fff2c9;
+      letter-spacing: .035em;
+    }
+    .brand small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.1;
+    }
+    .search-wrap {
+      position: relative;
+      flex: 1 1 460px;
+      max-width: 720px;
+    }
+    .search-wrap::before {
+      position: absolute;
+      top: 50%;
+      left: 13px;
+      content: "⌕";
+      color: var(--gold);
+      font-size: 23px;
+      transform: translateY(-54%);
+      pointer-events: none;
+    }
+    #search {
+      width: 100%;
+      height: 42px;
+      padding: 0 42px;
+      color: var(--ink);
+      outline: none;
+      background: rgba(27, 29, 21, .92);
+      border: 1px solid rgba(217,173,69,.28);
+      border-radius: 9px;
+      transition: .18s ease;
+    }
+    #search:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(217,173,69,.11);
+    }
+    #clearSearch {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      color: var(--muted);
+      cursor: pointer;
+      background: transparent;
+      border: 0;
+      border-radius: 6px;
+    }
+    #clearSearch:hover { color: var(--ink); background: rgba(255,255,255,.06); }
+    .top-actions { display: flex; gap: 8px; margin-left: auto; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 7px 13px;
+      color: #f5e7bf;
+      text-decoration: none;
+      cursor: pointer;
+      background: linear-gradient(#2b291e, #1a1b14);
+      border: 1px solid rgba(217,173,69,.48);
+      border-radius: 7px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.5);
+    }
+    .btn:hover { border-color: var(--gold-2); background: linear-gradient(#373123, #202117); }
+    .btn-primary {
+      color: #151006;
+      font-weight: 700;
+      background: linear-gradient(#edca6c, #b9822e);
+      border-color: #ffe49a;
+    }
+    .btn-primary:hover { background: linear-gradient(#ffe08b, #ca963d); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: var(--sidebar) minmax(0, 1fr);
+      gap: 28px;
+      width: min(var(--max), calc(100% - 36px));
+      margin: 28px auto 80px;
+    }
+    .sidebar {
+      position: sticky;
+      top: 98px;
+      align-self: start;
+      max-height: calc(100vh - 118px);
+      overflow: auto;
+      padding: 16px;
+      background: linear-gradient(165deg, rgba(28,30,21,.97), rgba(15,17,13,.97));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      scrollbar-width: thin;
+      scrollbar-color: var(--bronze) transparent;
+    }
+    .sidebar h2 {
+      margin: 0 0 10px;
+      color: var(--gold-2);
+      font: 700 15px var(--serif);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .toc {
+      display: grid;
+      gap: 3px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .toc a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 9px;
+      color: #c8c4ae;
+      font-size: 13px;
+      line-height: 1.25;
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      border-radius: 4px;
+    }
+    .toc a::before {
+      width: 5px;
+      height: 5px;
+      content: "";
+      background: #6d6b59;
+      border-radius: 50%;
+    }
+    .toc a:hover, .toc a.active {
+      color: #fff0c0;
+      background: rgba(217,173,69,.08);
+      border-left-color: var(--gold);
+    }
+    .toc a.active::before { background: var(--gold-2); box-shadow: 0 0 8px var(--gold); }
+    .side-note {
+      margin-top: 16px;
+      padding: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      background: rgba(0,0,0,.24);
+      border: 1px solid rgba(126,162,107,.23);
+      border-radius: 8px;
+    }
+    .side-note strong { color: var(--green-bright); }
+
+    main { min-width: 0; }
+    .hero {
+      position: relative;
+      isolation: isolate;
+      min-height: 370px;
+      overflow: hidden;
+      padding: clamp(30px, 5vw, 70px);
+      background:
+        linear-gradient(100deg, rgba(12,14,11,.98) 8%, rgba(20,24,17,.88) 58%, rgba(32,28,17,.60)),
+        radial-gradient(circle at 88% 30%, rgba(217,173,69,.24), transparent 25%),
+        #121510;
+      border: 1px solid rgba(217,173,69,.34);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+    .hero::before, .hero::after {
+      position: absolute;
+      z-index: -1;
+      content: "";
+      border: 1px solid rgba(217,173,69,.16);
+      transform: rotate(45deg);
+    }
+    .hero::before { right: 5%; bottom: -150px; width: 360px; height: 360px; }
+    .hero::after { right: 14%; bottom: -95px; width: 220px; height: 220px; }
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--green-bright);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    h1 {
+      max-width: 830px;
+      margin: 0;
+      color: #fff0bd;
+      font: 700 clamp(38px, 6vw, 72px)/.98 var(--serif);
+      letter-spacing: -.025em;
+      text-shadow: 0 3px 25px rgba(0,0,0,.7);
+    }
+    .hero .lead {
+      max-width: 760px;
+      margin: 24px 0 0;
+      color: #d4d1bc;
+      font-size: clamp(17px, 2vw, 20px);
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 26px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 30px;
+      padding: 4px 10px;
+      color: #cfccb5;
+      font-size: 12px;
+      background: rgba(8,10,8,.55);
+      border: 1px solid rgba(217,173,69,.25);
+      border-radius: 999px;
+    }
+    .chip::before { width: 6px; height: 6px; content: ""; background: var(--gold); border-radius: 50%; }
+
+    .doc-section {
+      margin-top: 24px;
+      padding: clamp(22px, 4vw, 42px);
+      background: linear-gradient(160deg, var(--panel), rgba(17,19,14,.98));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 14px 42px rgba(0,0,0,.24);
+    }
+    .doc-section[hidden], .search-hidden { display: none !important; }
+    .section-kicker {
+      margin: 0 0 5px;
+      color: var(--green-bright);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    h2, h3, h4 { text-wrap: balance; }
+    .doc-section > h2 {
+      margin: 0 0 11px;
+      color: #f4d982;
+      font: 700 clamp(27px, 3.2vw, 40px)/1.08 var(--serif);
+    }
+    h3 {
+      margin: 30px 0 10px;
+      color: #ead18a;
+      font: 700 22px/1.25 var(--serif);
+    }
+    h4 { margin: 20px 0 8px; color: #e6dcc0; font-size: 16px; }
+    p { margin: .7em 0; }
+    .muted { color: var(--muted); }
+    .intro { max-width: 930px; color: #c9c6b1; font-size: 17px; }
+
+    .callout {
+      margin: 18px 0;
+      padding: 15px 17px 15px 48px;
+      background: rgba(126,162,107,.08);
+      border: 1px solid rgba(126,162,107,.28);
+      border-left: 4px solid var(--green);
+      border-radius: 8px;
+      position: relative;
+    }
+    .callout::before {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      content: "✓";
+      color: var(--green-bright);
+      font-size: 20px;
+      font-weight: 800;
+    }
+    .callout.warn {
+      background: rgba(217,173,69,.07);
+      border-color: rgba(217,173,69,.30);
+      border-left-color: var(--gold);
+    }
+    .callout.warn::before { content: "!"; color: var(--gold-2); }
+    .callout.danger {
+      background: rgba(193,93,77,.07);
+      border-color: rgba(193,93,77,.32);
+      border-left-color: var(--red);
+    }
+    .callout.danger::before { content: "×"; color: #ef8f7c; }
+    .callout strong:first-child { color: #f3e5ba; }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 18px;
+      margin: 26px 0;
+    }
+    .flow-step {
+      position: relative;
+      min-height: 122px;
+      padding: 17px;
+      background: rgba(0,0,0,.25);
+      border: 1px solid rgba(217,173,69,.25);
+      border-radius: 10px;
+    }
+    .flow-step:not(:last-child)::after {
+      position: absolute;
+      top: 50%;
+      right: -16px;
+      content: "›";
+      color: var(--gold);
+      font-size: 28px;
+      transform: translateY(-55%);
+    }
+    .flow-step b { display: block; margin-bottom: 6px; color: #f1d988; }
+    .flow-step span { color: var(--muted); font-size: 13px; }
+    .flow-num {
+      display: grid;
+      width: 28px;
+      height: 28px;
+      margin-bottom: 10px;
+      place-items: center;
+      color: #161209;
+      font-weight: 900;
+      background: var(--gold);
+      border-radius: 50%;
+    }
+
+    .steps { display: grid; gap: 14px; padding: 0; list-style: none; counter-reset: step; }
+    .steps > li {
+      position: relative;
+      min-height: 72px;
+      padding: 15px 17px 15px 68px;
+      background: rgba(0,0,0,.20);
+      border: 1px solid rgba(217,173,69,.18);
+      border-radius: 9px;
+      counter-increment: step;
+    }
+    .steps > li::before {
+      position: absolute;
+      top: 15px;
+      left: 17px;
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      content: counter(step);
+      color: #1c1609;
+      font-weight: 900;
+      background: linear-gradient(#efd27c, #b9822f);
+      border: 1px solid #ffe9aa;
+      border-radius: 8px;
+    }
+    .steps b { color: #f2dfaa; }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .card {
+      min-width: 0;
+      padding: 18px;
+      background: linear-gradient(155deg, rgba(35,37,26,.82), rgba(17,19,14,.92));
+      border: 1px solid rgba(217,173,69,.22);
+      border-radius: 10px;
+    }
+    .card h3, .card h4 { margin-top: 0; }
+    .card p:last-child { margin-bottom: 0; }
+    .card-icon {
+      display: grid;
+      width: 40px;
+      height: 40px;
+      margin-bottom: 12px;
+      place-items: center;
+      color: var(--gold-2);
+      font-size: 21px;
+      background: rgba(0,0,0,.30);
+      border: 1px solid rgba(217,173,69,.31);
+      border-radius: 9px;
+    }
+    .objective-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 17px 0 10px;
+    }
+    .objective-toolbar button {
+      padding: 6px 10px;
+      color: #c8c5b2;
+      cursor: pointer;
+      background: rgba(0,0,0,.25);
+      border: 1px solid rgba(217,173,69,.22);
+      border-radius: 999px;
+    }
+    .objective-toolbar button:hover,
+    .objective-toolbar button.active {
+      color: #201708;
+      background: var(--gold-2);
+      border-color: #fff0bd;
+    }
+    .objective-card[data-hidden="true"] { display: none; }
+    .objective-card .tagline {
+      min-height: 42px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .objective-card ul { margin-bottom: 0; padding-left: 20px; }
+
+    .table-wrap {
+      width: 100%;
+      margin: 16px 0;
+      overflow-x: auto;
+      border: 1px solid rgba(217,173,69,.20);
+      border-radius: 9px;
+    }
+    table {
+      width: 100%;
+      min-width: 720px;
+      border-collapse: collapse;
+      background: rgba(0,0,0,.15);
+    }
+    th, td {
+      padding: 11px 13px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid rgba(217,173,69,.14);
+    }
+    th {
+      color: #f0d783;
+      font-size: 12px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      background: rgba(217,173,69,.06);
+    }
+    tr:last-child td { border-bottom: 0; }
+    td:first-child { color: #ece1c2; font-weight: 650; }
+    td { color: #c5c2ad; }
+
+    details {
+      margin: 11px 0;
+      overflow: hidden;
+      background: rgba(0,0,0,.19);
+      border: 1px solid rgba(217,173,69,.19);
+      border-radius: 8px;
+    }
+    summary {
+      padding: 13px 16px;
+      color: #e9d497;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+    }
+    summary:hover { background: rgba(217,173,69,.05); }
+    details > div { padding: 0 16px 16px; }
+
+    .code-box {
+      position: relative;
+      margin: 11px 0;
+      overflow: hidden;
+      background: #090b09;
+      border: 1px solid rgba(217,173,69,.25);
+      border-radius: 8px;
+    }
+    .code-box pre {
+      margin: 0;
+      padding: 15px 54px 15px 15px;
+      overflow: auto;
+      color: #f1dca5;
+      font: 13px/1.55 var(--mono);
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      padding: 4px 7px;
+      color: var(--muted);
+      font-size: 11px;
+      cursor: pointer;
+      background: #202319;
+      border: 1px solid rgba(217,173,69,.27);
+      border-radius: 5px;
+    }
+    .copy-btn:hover { color: #fff0c0; border-color: var(--gold); }
+    .copy-btn.copied { color: var(--green-bright); }
+    .command-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 13px;
+      margin-top: 16px;
+    }
+    .command-card {
+      padding: 15px;
+      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(117,165,179,.23);
+      border-radius: 9px;
+    }
+    .command-card h4 { margin-top: 0; color: #b8d6dc; }
+    .command-card p { color: var(--muted); font-size: 13px; }
+
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 9px;
+      margin: 18px 0;
+    }
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 11px;
+      cursor: pointer;
+      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(217,173,69,.16);
+      border-radius: 7px;
+    }
+    .check-item:hover { border-color: rgba(217,173,69,.34); }
+    .check-item input { margin-top: 5px; accent-color: var(--gold); }
+    .check-item:has(input:checked) { opacity: .67; border-color: rgba(126,162,107,.32); }
+    .check-item:has(input:checked) span { text-decoration: line-through; }
+    .result-empty {
+      display: none;
+      margin: 24px 0;
+      padding: 28px;
+      color: var(--muted);
+      text-align: center;
+      border: 1px dashed rgba(217,173,69,.35);
+      border-radius: 10px;
+    }
+    .result-empty.visible { display: block; }
+    .mini-label {
+      display: inline-block;
+      padding: 2px 7px;
+      color: #171108;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      background: var(--gold-2);
+      border-radius: 4px;
+    }
+    .mini-label.advanced { color: #071014; background: #91c3cf; }
+    .mini-label.danger { color: #240907; background: #e18876; }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .footer {
+      padding: 28px 0 10px;
+      color: #797a68;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    @media (max-width: 1120px) {
+      .cards { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .flow { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .flow-step:nth-child(2)::after { display: none; }
+    }
+    @media (max-width: 860px) {
+      .topbar { flex-wrap: wrap; padding: 10px 16px; }
+      .brand { min-width: 0; }
+      .search-wrap { order: 3; flex-basis: 100%; max-width: none; }
+      .layout { display: block; width: min(100% - 24px, 760px); margin-top: 16px; }
+      .sidebar { position: relative; top: auto; max-height: none; margin-bottom: 18px; }
+      .toc { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      html { scroll-padding-top: 140px; }
+      .command-grid, .two-col, .checklist { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 620px) {
+      .brand small, .top-actions .print-label { display: none; }
+      .top-actions { margin-left: 0; }
+      .hero { min-height: 0; padding: 30px 22px; }
+      .cards, .flow { grid-template-columns: 1fr; }
+      .flow-step::after { display: none !important; }
+      .toc { grid-template-columns: 1fr; }
+      .doc-section { padding: 22px 17px; }
+    }
+    @media print {
+      :root { --ink: #1c1a14; --muted: #585547; }
+      body { color: #1c1a14; background: #fff; font-size: 11pt; }
+      .topbar, .sidebar, .objective-toolbar, .copy-btn, .btn, .footer { display: none !important; }
+      .layout { display: block; width: 100%; margin: 0; }
+      .hero, .doc-section {
+        color: #1c1a14;
+        background: #fff;
+        border-color: #9c8a5b;
+        box-shadow: none;
+        break-inside: avoid;
+      }
+      .hero { min-height: 0; padding: 24px; }
+      h1, .doc-section > h2, h3, h4, .eyebrow { color: #2b2416 !important; text-shadow: none; }
+      .card, .callout, .flow-step, .steps > li, details, .command-card, .code-box {
+        color: #1c1a14;
+        background: #fff;
+        border-color: #aaa;
+      }
+      code, .code-box pre { color: #1c1a14; background: #f4f1e8; }
+      .doc-section, table, .card { break-inside: avoid; }
+      a { color: #1c1a14; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand" aria-label="ArdaNPCs quest manuál">
+      <div class="brand-mark" aria-hidden="true">A</div>
+      <div>
+        <strong>Kronika questů</strong>
+        <small>ArdaNPCs • Minecraft 1.21.8</small>
+      </div>
+    </div>
+    <div class="search-wrap">
+      <input id="search" type="search" placeholder="Hledat: command, reputace, escort, cooldown…" autocomplete="off" aria-label="Hledat v manuálu">
+      <button id="clearSearch" title="Vymazat hledání" aria-label="Vymazat hledání">×</button>
+    </div>
+    <div class="top-actions">
+      <button class="btn" id="expandAll" type="button">Rozbalit</button>
+      <button class="btn btn-primary" type="button" onclick="window.print()">⌁ <span class="print-label">&nbsp;Tisk / PDF</span></button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" aria-label="Obsah manuálu">
+      <h2>Obsah kroniky</h2>
+      <nav>
+        <ol class="toc">
+          <li><a href="#before">Než začneš</a></li>
+          <li><a href="#first-quest">První quest krok za krokem</a></li>
+          <li><a href="#dialog-flow">Dialog a odevzdání</a></li>
+          <li><a href="#fields">Význam všech polí</a></li>
+          <li><a href="#objectives">Šest typů cíle</a></li>
+          <li><a href="#rewards">Odměny, opakování, reputace</a></li>
+          <li><a href="#conditions">Podmínky odpovědí</a></li>
+          <li><a href="#commands">Commandy uvnitř questů</a></li>
+          <li><a href="#chat-commands">Chatové /ardanpcs příkazy</a></li>
+          <li><a href="#escort">Escort a trasy</a></li>
+          <li><a href="#manual">Ruční příběhový krok</a></li>
+          <li><a href="#testing">Testovací checklist</a></li>
+          <li><a href="#troubleshooting">Když quest nefunguje</a></li>
+          <li><a href="#storage">Ukládání a oprava dat</a></li>
+          <li><a href="#limits">Limity systému</a></li>
+        </ol>
+      </nav>
+      <div class="side-note">
+        <strong>Ověřeno podle projektu</strong><br>
+        Manuál odpovídá aktuálnímu ArdaNPCs pro Fabric 1.21.8. Popisuje skutečné volby editoru a serverové chování, ne staré CustomNPCs API.
+      </div>
+    </aside>
+
+    <main>
+      <section class="hero searchable" id="start">
+        <p class="eyebrow">Praktický český manuál</p>
+        <h1>Od první věty až po hotový quest</h1>
+        <p class="lead">
+          Jak založit quest, propojit ho s dialogem, vybrat cíl, nastavit odměnu, reputaci,
+          podmínky a bezpečné serverové commandy — včetně příkladů, které můžeš rovnou použít.
+        </p>
+        <div class="hero-meta">
+          <span class="chip">Fabric 1.21.8</span>
+          <span class="chip">OP úroveň 2</span>
+          <span class="chip">6 typů cíle</span>
+          <span class="chip">Commandy s placeholdery</span>
+          <span class="chip">Offline HTML</span>
+        </div>
+      </section>
+
+      <div class="result-empty" id="noResults">
+        Pro zadaný výraz jsem v manuálu nic nenašel. Zkus kratší slovo, například
+        <code>quest</code>, <code>command</code>, <code>item</code> nebo <code>escort</code>.
+      </div>
+
+      <section class="doc-section searchable" id="before">
+        <p class="section-kicker">Příprava</p>
+        <h2>Než začneš</h2>
+        <p class="intro">
+          Tvorbu a úpravu NPC smí dělat operátor s oprávněním alespoň <strong>OP 2</strong>.
+          Mod musí být ve stejné verzi na serveru i na klientovi.
+        </p>
+        <div class="cards">
+          <article class="card">
+            <div class="card-icon" aria-hidden="true">⌘</div>
+            <h3>Arda NPC hůlka</h3>
+            <p>V creative záložce <strong>Arda NPCs</strong> vezmi hůlku. Pravým klikem na blok vytvoříš NPC, pravým klikem na NPC otevřeš editor.</p>
+          </article>
+          <article class="card">
+            <div class="card-icon" aria-hidden="true">Q</div>
+            <h3>Karta Questy</h3>
+            <p>V editoru NPC otevři kartu <strong>Questy</strong> a zvol <strong>Otevřít pavouka dialogů</strong>. Tam se propojuje příběh, odpovědi a quest.</p>
+          </article>
+          <article class="card">
+            <div class="card-icon" aria-hidden="true">L</div>
+            <h3>Hráčský deník</h3>
+            <p>Hráč vidí aktivní, hotové a selhané questy v deníku na klávese <kbd>L</kbd> nebo přes tlačítko u survival inventáře.</p>
+          </article>
+        </div>
+        <div class="callout warn">
+          <strong>Nejdůležitější pravidlo:</strong> po spuštění questu na živém serveru už neměň jeho
+          <strong>ID</strong>. ID je součástí uloženého postupu hráčů. Změna by pro ně vypadala jako úplně jiný quest.
+        </div>
+      </section>
+
+      <section class="doc-section searchable" id="first-quest">
+        <p class="section-kicker">Rychlý postup</p>
+        <h2>První quest krok za krokem</h2>
+        <p class="intro">
+          Toto je nejspolehlivější cesta v aktuálním editoru. Příklad vytvoří úkol, ve kterém hráč přinese
+          deset železných ingotů.
+        </p>
+
+        <div class="flow" aria-label="Tok tvorby questu">
+          <div class="flow-step"><span class="flow-num">1</span><b>Založ quest</b><span>Pavouk dialogů → + Nový quest</span></div>
+          <div class="flow-step"><span class="flow-num">2</span><b>Nastav cíl</b><span>Item, počet, odebrání, odměny</span></div>
+          <div class="flow-step"><span class="flow-num">3</span><b>Propoj odpovědi</b><span>Přijmout a Splnit / odevzdat</span></div>
+          <div class="flow-step"><span class="flow-num">4</span><b>Ulož a otestuj</b><span>Uložit → běžný hráč → deník L</span></div>
+        </div>
+
+        <ol class="steps">
+          <li>
+            <b>Otevři správné NPC.</b> S Arda NPC hůlkou klikni pravým tlačítkem na NPC, které bude quest zadávat.
+            Otevři <strong>Questy → Otevřít pavouka dialogů</strong>.
+          </li>
+          <li>
+            <b>V levém sloupci klikni na „+ Nový quest“.</b> Objeví se například <code>quest_1</code>.
+            Klikni na něj a ve středním panelu se otevře <strong>Editor questu</strong>.
+          </li>
+          <li>
+            <b>Vyplň základ.</b> ID změň na čitelné <code>zelezo_pro_kovare</code>, název na
+            <em>Železo pro kováře</em>, kategorii na <em>Vedlejší</em> a do popisu napiš zadání pro deník.
+          </li>
+          <li>
+            <b>Nastav cíl.</b> Typ cíle zvol <strong>Sebrat item</strong>, cílový item
+            <code>minecraft:iron_ingot</code>, počet <code>10</code> a zapni
+            <strong>Odebrat při odevzdání</strong>.
+          </li>
+          <li>
+            <b>Nastav odměny.</b> Například <code>100</code> XP a <code>minecraft:emerald</code> × <code>3</code>.
+            Prázdné ID itemu znamená žádnou itemovou odměnu.
+          </li>
+          <li>
+            <b>Vytvoř nabídku v dialogu.</b> Klikni <strong>← Zpět na dialogy</strong>, založ nebo vyber dialog,
+            napiš text NPC a přidej odpověď <em>„Přinesu ti železo.“</em>. U <strong>Co dál</strong> vyber
+            <strong>Přijmout quest</strong> a quest <code>zelezo_pro_kovare</code>.
+          </li>
+          <li>
+            <b>Přidej odevzdání.</b> Ve stejném nebo navazujícím dialogu přidej odpověď
+            <em>„Mám železo.“</em>. U <strong>Co dál</strong> zvol
+            <strong>Splnit / odevzdat quest</strong> a stejný quest.
+          </li>
+          <li>
+            <b>Nastav start a ulož.</b> Vyber úvodní dialog, klikni <strong>Nastavit jako start</strong>
+            a nahoře <strong>Uložit</strong>. Bez startovního dialogu běžný klik na NPC quest nenabídne.
+          </li>
+          <li>
+            <b>Otestuj jako hráč bez OP.</b> Přijmi quest, otevři deník <kbd>L</kbd>, vezmi 10 ingotů,
+            vrať se, odevzdej je a zkontroluj XP, emeraldy i zmizení ingotů.
+          </li>
+        </ol>
+
+        <div class="callout">
+          Tlačítko <strong>Questy</strong> u odpovědi umí stejnou vazbu vytvořit v jednom okně:
+          vybereš quest, akci <em>Přijmout</em> nebo <em>Dokončit</em> a můžeš automaticky přidat správnou podmínku.
+        </div>
+      </section>
+
+      <section class="doc-section searchable" id="dialog-flow">
+        <p class="section-kicker">Pavouk dialogů</p>
+        <h2>Jak spolu souvisí dialog, quest a odevzdání</h2>
+        <p class="intro">
+          Quest je datová definice cíle. Dialog rozhoduje, <strong>kdy se quest přijme</strong> a
+          <strong>kdy se zkusí dokončit</strong>. Samotné vytvoření questu tedy ještě neznamená,
+          že ho hráč někde uvidí.
+        </p>
+
+        <div class="two-col">
+          <div>
+            <h3>Dialogový uzel</h3>
+            <p>Každý uzel má vlastní <strong>ID uzlu</strong>, text <strong>NPC řekne</strong> a až šest hráčských odpovědí.</p>
+            <p>Jeden uzel označ tlačítkem <strong>Nastavit jako start</strong>. Ten se otevře při běžném pravém kliknutí.</p>
+          </div>
+          <div>
+            <h3>Odpověď hráče</h3>
+            <p>Každá odpověď má <strong>Co dál</strong>, volitelné <strong>Podmínky</strong>,
+              <strong>Akce</strong> a <strong>Questy</strong>.</p>
+            <p>Server při kliknutí znovu ověří podmínky. Upravený klient nemůže splnit quest, který ve skutečnosti hotový není.</p>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Volba „Co dál“</th><th>Co udělá</th><th>Co vybrat</th></tr></thead>
+            <tbody>
+              <tr><td>Ukončit rozhovor</td><td>Zavře dialog bez další navigace.</td><td>Nic.</td></tr>
+              <tr><td>Pokračovat na dialog</td><td>Přejde na jiný dialogový uzel.</td><td>ID cílového dialogu.</td></tr>
+              <tr><td>Vrátit na start</td><td>Vrátí hráče na startovní uzel.</td><td>Nic.</td></tr>
+              <tr><td>Přijmout quest</td><td>Vytvoří hráči aktivní stav questu. Pokud už ho přijmout nesmí, akce selže.</td><td>ID questu.</td></tr>
+              <tr><td>Splnit / odevzdat quest</td><td>Zkontroluje všechny cíle a předměty, bezpečně uloží stav a teprve potom vydá odměny.</td><td>ID questu.</td></tr>
+              <tr><td>Pouze spustit akce</td><td>Nespustí navigaci ani questovou transakci; vykoná nastavené akce.</td><td>Command nebo vestavěnou akci.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <details open>
+          <summary>Doporučené odpovědi v jednom startovním dialogu</summary>
+          <div>
+            <ul>
+              <li><strong>„Pomohu ti.“</strong> → Přijmout quest → podmínka <em>Quest není přijatý</em>.</li>
+              <li><strong>„Mám hotovo.“</strong> → Splnit / odevzdat quest → podmínka <em>Quest připraven k odevzdání</em>.</li>
+              <li><strong>„Připomeň mi zadání.“</strong> → pokračovat na vysvětlující dialog → podmínka <em>Quest je aktivní</em>.</li>
+              <li><strong>„Sbohem.“</strong> → Ukončit rozhovor → bez podmínky.</li>
+            </ul>
+            <p class="muted">Při propojení přes tlačítko <strong>Questy</strong> může editor správnou stavovou podmínku doplnit automaticky.</p>
+          </div>
+        </details>
+
+        <div class="callout warn">
+          Jedna odpověď smí provést nejvýše <strong>jednu transakční questovou akci</strong>:
+          přijmout, dokončit nebo posunout ruční cíl. Kdybys do jedné odpovědi přidal dvě, server ji z bezpečnostních důvodů odmítne.
+        </div>
+      </section>
+
+      <section class="doc-section searchable" id="fields">
+        <p class="section-kicker">Editor questu</p>
+        <h2>Co má které pole za funkci</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Pole</th><th>Funkce</th><th>Doporučení / příklad</th></tr></thead>
+            <tbody>
+              <tr><td>ID questu</td><td>Trvalý technický klíč používaný dialogy a uloženým postupem hráčů.</td><td><code>zprava_pro_sama</code>; bez mezer a diakritiky. Po vydání neměnit.</td></tr>
+              <tr><td>Název</td><td>Viditelný název v deníku a systémových zprávách.</td><td><em>Zpráva pro Sama</em></td></tr>
+              <tr><td>Kategorie</td><td>Zařadí quest v deníku jako Vedlejší, Příběhový nebo Denní.</td><td>Kategorie sama neurčuje cooldown; ten nastavíš zvlášť.</td></tr>
+              <tr><td>Popis</td><td>Zadání a příběhový text v deníku.</td><td>Napiš konkrétně cíl i místo návratu.</td></tr>
+              <tr><td>Typ cíle</td><td>Určuje událost, která postupuje quest: rozhovor, item, zabití, escort, místo nebo ruční krok.</td><td>Podrobný rozpis je v další kapitole.</td></tr>
+              <tr><td>Počet</td><td>Požadovaný počet itemů, zabití nebo ručních kroků.</td><td>Musí být alespoň 1.</td></tr>
+              <tr><td>Odebrat při odevzdání</td><td>U sběrného cíle po úspěšném odevzdání itemy hráči odebere.</td><td>Vypnuto = pouze ověří přítomnost.</td></tr>
+              <tr><td>XP odměna</td><td>Přidá body zkušeností, nikoli přímo celé levely.</td><td><code>250</code> = 250 XP bodů.</td></tr>
+              <tr><td>Item odměna</td><td>ID předmětu vydaného po úspěšném a uloženém dokončení.</td><td><code>minecraft:emerald</code>; použij Vybrat nebo Z ruky.</td></tr>
+              <tr><td>Počet itemů</td><td>Počet kusů itemové odměny.</td><td>Velká odměna se bezpečně rozdělí do stacků; plný inventář ověř ve hře.</td></tr>
+              <tr><td>Režim opakování</td><td>Jednou, okamžitě znovu, nebo znovu až po cooldownu.</td><td>Pro denní quest použij kategorii Denní + cooldown 24 h.</td></tr>
+              <tr><td>Navazující quest</td><td>Po dokončení se server pokusí přijmout další quest stejného zadávajícího NPC.</td><td>Stále platí běžná pravidla přijetí, opakování a cooldownu.</td></tr>
+              <tr><td>Frakce</td><td>Vybere reputaci Dobro nebo Zlo, kterou quest změní.</td><td>Hodnoty 0 znamenají žádnou změnu.</td></tr>
+              <tr><td>Za splnění</td><td>Přičte nebo odečte reputaci po legitimním dokončení.</td><td><code>5</code> přidá, <code>-5</code> odebere.</td></tr>
+              <tr><td>Za selhání</td><td>Přičte nebo odečte reputaci při skutečném selhání, typicky escortu.</td><td>Často <code>-2</code> nebo <code>0</code>.</td></tr>
+              <tr><td>Akce při přijetí</td><td>Commandy spuštěné až poté, co je přijetí bezpečně uloženo.</td><td>Například tag, scoreboard, zvuk.</td></tr>
+              <tr><td>Akce při dokončení</td><td>Commandy spuštěné po uložení stavu a vydání odměn.</td><td>Například advancement nebo otevření další dějové fáze.</td></tr>
+              <tr><td>Akce při selhání</td><td>Commandy při selhání aktivního questu.</td><td>Pokud je hráč offline, command se nespustí; stav selhání se uloží.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          Tlačítka <strong>Vybrat…</strong> a <strong>Z ruky</strong> jsou bezpečnější než ruční psaní item ID.
+          U modded itemů používej skutečné ID registru ve tvaru <code>namespace:item</code>.
+        </div>
+      </section>
+
+      <section class="doc-section searchable" id="objectives">
+        <p class="section-kicker">Cíle</p>
+        <h2>Šest typů cíle</h2>
+        <p class="intro">Klikni na filtr a zobraz si jen typ, který právě nastavuješ.</p>
+        <div class="objective-toolbar" role="group" aria-label="Filtr typů cíle">
+          <button class="active" data-filter="all" type="button">Všechny</button>
+          <button data-filter="talk" type="button">Rozhovor</button>
+          <button data-filter="collect" type="button">Item</button>
+          <button data-filter="kill" type="button">Zabití</button>
+          <button data-filter="escort" type="button">Escort</button>
+          <button data-filter="location" type="button">Místo</button>
+          <button data-filter="manual" type="button">Ruční krok</button>
+        </div>
+        <div class="cards objective-cards">
+          <article class="card objective-card" data-kind="talk">
+            <div class="card-icon" aria-hidden="true">“</div>
+            <h3>Pohovořit s NPC</h3>
+            <p class="tagline">Hráč musí pravým klikem promluvit s konkrétním Arda NPC.</p>
+            <ul>
+              <li>Zadej jméno nebo UUID cílového NPC.</li>
+              <li>Jeden úspěšný rozhovor cíl splní.</li>
+              <li>Zvol návrat k zadavateli, nebo dokončení přímo u cíle.</li>
+              <li>Cílové NPC dostane při aktivním cíli přednost před běžným dialogem.</li>
+            </ul>
+          </article>
+          <article class="card objective-card" data-kind="collect">
+            <div class="card-icon" aria-hidden="true">◇</div>
+            <h3>Sebrat item</h3>
+            <p class="tagline">Při odevzdání se kontroluje aktuální obsah inventáře hráče.</p>
+            <ul>
+              <li>ID musí existovat v registru itemů.</li>
+              <li>Počet se sčítá přes všechny sloty.</li>
+              <li>Zapnuté odebrání itemy spotřebuje až při úspěšném dokončení.</li>
+              <li>Chybějící item odevzdání odmítne bez ztráty postupu.</li>
+            </ul>
+          </article>
+          <article class="card objective-card" data-kind="kill">
+            <div class="card-icon" aria-hidden="true">⚔</div>
+            <h3>Zabít moby</h3>
+            <p class="tagline">Počítají se serverově potvrzená zabití cílové entity.</p>
+            <ul>
+              <li>Vyber vanilla nebo modded entity ID.</li>
+              <li>Zadej požadovaný počet.</li>
+              <li>Postup patří hráči, kterému server připsal zdroj poškození/zabití.</li>
+              <li>Pro konkrétní Arda NPC lze použít jeho UUID.</li>
+            </ul>
+          </article>
+          <article class="card objective-card" data-kind="escort">
+            <div class="card-icon" aria-hidden="true">➜</div>
+            <h3>Doprovodit NPC</h3>
+            <p class="tagline">NPC projde ručními body nebo blokovou trasou, hráč ho chrání.</p>
+            <ul>
+              <li>Nastav NPC k doprovodu a zdroj trasy.</li>
+              <li>Pro produkční quest používej blokovou trasu a tlačítko Ověřit.</li>
+              <li>Lze selhat při smrti NPC; pokročilá data umí i limit času/vzdálenosti.</li>
+              <li>Auto-dokončení odevzdá quest po dosažení cíle.</li>
+            </ul>
+          </article>
+          <article class="card objective-card" data-kind="location">
+            <div class="card-icon" aria-hidden="true">◎</div>
+            <h3>Dojít na místo</h3>
+            <p class="tagline">Cíl se posune, když hráč vstoupí do koule kolem zadaného bodu.</p>
+            <ul>
+              <li>Vyplň dimenzi, X, Y, Z a radius.</li>
+              <li><strong>Moje pozice</strong> vyplní aktuální bod.</li>
+              <li>Dimenze musí přesně odpovídat, například <code>minecraft:overworld</code>.</li>
+              <li>Radius musí být větší než nula.</li>
+            </ul>
+          </article>
+          <article class="card objective-card" data-kind="manual">
+            <div class="card-icon" aria-hidden="true">✦</div>
+            <h3>Ruční / příběhový krok</h3>
+            <p class="tagline">Postupuje pouze bezpečná dialogová akce, nikoli automatická herní událost.</p>
+            <ul>
+              <li>Nastav počet kroků.</li>
+              <li>V odpovědi použij vestavěnou akci <em>Posunout příběhový cíl</em>.</li>
+              <li>Parametr má tvar <code>questId|obj_1|1</code>.</li>
+              <li>Akce musí být v dialogu stejného NPC, které quest zadává a vlastní.</li>
+              <li>Vhodné pro cutscény, hádanky, páky a řízené příběhové momenty.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="doc-section searchable" id="rewards">
+        <p class="section-kicker">Výsledek questu</p>
+        <h2>Odměny, opakování, návaznost a reputace</h2>
+
+        <h3>Odměny</h3>
+        <div class="cards">
+          <article class="card">
+            <h4>XP body</h4>
+            <p>Pole XP přidává přesný počet bodů zkušeností. Hodnota <code>0</code> znamená žádné XP.</p>
+          </article>
+          <article class="card">
+            <h4>Item</h4>
+            <p>Neplatné ID odměny zablokuje dokončení, aby hráč nepřišel o legitimní odměnu bez upozornění.</p>
+          </article>
+          <article class="card">
+            <h4>Command</h4>
+            <p>Pro složitější odměny použij <strong>Akce při dokončení</strong>. Spustí se až po bezpečném uložení a běžných odměnách.</p>
+          </article>
+        </div>
+
+        <h3>Opakování</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Režim</th><th>Chování</th><th>Typické použití</th></tr></thead>
+            <tbody>
+              <tr><td>Jednorázový</td><td>Po dokončení už nabídka pro stejného hráče nebude znovu dostupná.</td><td>Hlavní příběh, unikátní odměna.</td></tr>
+              <tr><td>Opakovat hned</td><td>Po dokončení lze quest okamžitě přijmout znovu.</td><td>Farmářské nebo tréninkové úkoly.</td></tr>
+              <tr><td>Po cooldownu</td><td>Quest se znovu zpřístupní po zadaném počtu hodin.</td><td>Denní quest: obvykle 24 h.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          Kategorie <strong>Denní</strong> je označení v deníku. Sama automaticky nenastaví 24 hodin.
+          Pro skutečný denní quest vyber zároveň <strong>Po cooldownu → 24</strong>.
+        </div>
+
+        <h3>Navazující quest</h3>
+        <p>
+          Po úspěšném dokončení může server automaticky přijmout další quest stejného NPC.
+          Hráč nemusí znovu klikat na nabídku. Nepoužívej cyklus A → B → A s okamžitým opakováním.
+        </p>
+
+        <h3>Reputace</h3>
+        <p>
+          Vyber <strong>Dobro</strong> nebo <strong>Zlo</strong>. Kladná hodnota reputaci přidá,
+          záporná odebere. Změna se aplikuje až po legitimním dokončení nebo skutečném selhání
+          a je chráněná proti opakovanému vydání.
+        </p>
+      </section>
+
+      <section class="doc-section searchable" id="conditions">
+        <p class="section-kicker">Viditelnost odpovědí</p>
+        <h2>Podmínky: kdy hráč odpověď uvidí</h2>
+        <p class="intro">
+          Otevři u odpovědi tlačítko <strong>Podmínky</strong>. Může platit
+          <strong>všechno zároveň (A ZÁROVEŇ)</strong>, nebo stačí
+          <strong>alespoň jedna podmínka (NEBO)</strong>. Bez podmínek je odpověď viditelná vždy.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Podmínka</th><th>Parametr / počet</th><th>Příklad a význam</th></tr></thead>
+            <tbody>
+              <tr><td>Quest není přijatý</td><td>Vyber quest</td><td>Nabídka pro přijetí. U opakovatelného questu respektuje cooldown.</td></tr>
+              <tr><td>Quest je aktivní</td><td>Vyber quest</td><td>Zobrazí nápovědu nebo průběžnou větev jen během plnění.</td></tr>
+              <tr><td>Quest připraven k odevzdání</td><td>Vyber quest</td><td>Funguje pro quest patřící právě otevřenému NPC. Při odevzdání jinému NPC přes <code>completeNpcId</code> tam mod vytvoří automatický odevzdávací dialog.</td></tr>
+              <tr><td>Quest je splněný</td><td>Vyber quest</td><td>Odemkne dialog po dokončení.</td></tr>
+              <tr><td>Quest je nesplněný (failed)</td><td>Vyber quest</td><td>Reakce po selhání escortu nebo jiném zaznamenaném failu.</td></tr>
+              <tr><td>Hráč má / nemá item</td><td>Item ID + počet</td><td><code>minecraft:emerald</code>, <code>5</code>.</td></tr>
+              <tr><td>Dialog byl / nebyl navštíven</td><td>Vyber dialog stejného NPC</td><td>Jednorázové věty, odemykání témat, paměť rozhovoru.</td></tr>
+              <tr><td>Hráč je OP</td><td>Bez parametru</td><td>Administrátorská odpověď, vyžaduje OP 2.</td></tr>
+              <tr><td>Scoreboard skóre alespoň</td><td>Název objective + minimum</td><td><code>arda_kapitola</code>, <code>3</code>.</td></tr>
+              <tr><td>Advancement dokončen</td><td>Advancement ID</td><td><code>minecraft:story/mine_stone</code>.</td></tr>
+              <tr><td>XP level alespoň</td><td>Minimum</td><td><code>15</code> znamená hráčský level 15 nebo vyšší.</td></tr>
+              <tr><td>Zdraví alespoň (%)</td><td>0–100</td><td><code>50</code> = alespoň polovina maximálního zdraví.</td></tr>
+              <tr><td>Hráč má tag</td><td>Tag</td><td><code>gondor_obcan</code>, vytvořený například commandem.</td></tr>
+              <tr><td>Hráč je v teamu</td><td>Název teamu</td><td><code>gondor</code>.</td></tr>
+              <tr><td>Herní režim</td><td>Název režimu</td><td><code>survival</code>, <code>adventure</code>, <code>creative</code>, <code>spectator</code>.</td></tr>
+              <tr><td>Čas světa v rozsahu</td><td><code>start-end</code></td><td><code>13000-23000</code> = noc; rozsah může přejít přes 0.</td></tr>
+              <tr><td>Počasí</td><td><code>clear</code>, <code>rain</code>, <code>thunder</code></td><td>Česky funguje také <code>jasno</code>, <code>dest</code>, <code>bourka</code>.</td></tr>
+              <tr><td>Reputace alespoň</td><td>Klíč + minimum</td><td><code>good</code>, <code>20</code> pro Dobro; <code>evil</code> pro Zlo.</td></tr>
+              <tr><td>Dimenze</td><td>ID dimenze</td><td><code>minecraft:the_nether</code>.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout">
+          Podmínka se neověřuje jen při otevření okna. Server ji ověří znovu i v okamžiku kliknutí,
+          takže odhození itemu nebo změna stavu mezi zobrazením a kliknutím akci bezpečně zastaví.
+        </div>
+      </section>
+
+      <section class="doc-section searchable" id="commands">
+        <p class="section-kicker">Automatizace bez scriptingu</p>
+        <h2>Commandy a vestavěné akce</h2>
+        <p class="intro">
+          ArdaNPCs nemá JavaScriptový scripting. Místo něj můžeš na přesných místech použít
+          serverové commandy a bezpečné vestavěné akce. Commandy běží jménem klikajícího hráče,
+          s jeho pozicí, rotací a světem; zdroj je ztišený a dočasně zvýšený na oprávnění 2.
+          Každý pokus se zapisuje do serverového logu.
+        </p>
+
+        <h3>Kam lze command přidat</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Místo v editoru</th><th>Kdy se spustí</th><th>Důležité pořadí</th></tr></thead>
+            <tbody>
+              <tr><td>Odpověď → Akce</td><td>Když hráč klikne na konkrétní odpověď.</td><td>Pokud odpověď zároveň přijímá/dokončuje/posouvá quest, command poběží jen po úspěchu této transakce.</td></tr>
+              <tr><td>Quest → Akce při přijetí</td><td>Po úspěšném přijetí questu.</td><td>Quest je už aktivní a bezpečně uložený.</td></tr>
+              <tr><td>Quest → Akce při dokončení</td><td>Po legitimním odevzdání.</td><td>Quest je uložený, běžné odměny i reputace už byly vydané.</td></tr>
+              <tr><td>Quest → Akce při selhání</td><td>Při zaznamenaném failu aktivního questu.</td><td>Command vyžaduje online hráče; při offline failu se stav uloží, command se přeskočí.</td></tr>
+              <tr><td>Odpověď cílového NPC → Akce</td><td>Po potvrzení rozhovoru u TALK cíle.</td><td>Spustí se až po bezpečném posunu cíle.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Pravidla zápisu</h3>
+        <ul>
+          <li>Piš command <strong>bez úvodního lomítka</strong>: <code>give …</code>, ne <code>/give …</code>. Lomítko se sice odstraní, ale čistý zápis je přehlednější.</li>
+          <li>Jeden řádek = jeden command. Více commandů se vykoná v pořadí shora dolů.</li>
+          <li>V běžném editoru je command omezený na 256 znaků a počet akcí v jedné odpovědi na 8.</li>
+          <li>Command používá pozici a svět klikajícího hráče. Pro pozici NPC použij <code>{nx}</code>, <code>{ny}</code>, <code>{nz}</code> v dialogové akci.</li>
+          <li>Selhání jednoho commandu nevrátí už dokončený quest. Chyba se zapíše do <code>latest.log</code>.</li>
+        </ul>
+
+        <h3>Placeholdery — hodnoty, které mod dosadí</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Placeholder</th><th>Význam</th><th>Kde je dostupný</th></tr></thead>
+            <tbody>
+              <tr><td><code>{player}</code></td><td>Přesné jméno hráče.</td><td>Všude.</td></tr>
+              <tr><td><code>{player_uuid}</code></td><td>UUID hráče.</td><td>Všude.</td></tr>
+              <tr><td><code>{x}</code> <code>{y}</code> <code>{z}</code></td><td>Pozice hráče, dvě desetinná místa.</td><td>Všude.</td></tr>
+              <tr><td><code>{px}</code> <code>{py}</code> <code>{pz}</code></td><td>Alternativní názvy stejné pozice hráče.</td><td>Všude.</td></tr>
+              <tr><td><code>{world}</code></td><td>ID aktuální dimenze hráče.</td><td>Všude.</td></tr>
+              <tr><td><code>{npc}</code> / <code>{npc_name}</code></td><td>Viditelné jméno souvisejícího NPC.</td><td>Dialog, přijetí a dokončení. U online failu jen pokud definice NPC stále existuje; při offline failu se celý command přeskočí.</td></tr>
+              <tr><td><code>{npc_uuid}</code> / <code>{npc_id}</code></td><td>UUID souvisejícího NPC.</td><td>Dialog, přijetí a dokončení.</td></tr>
+              <tr><td><code>{nx}</code> <code>{ny}</code> <code>{nz}</code></td><td>Pozice NPC; pokud není načtené, použije se pozice hráče.</td><td>Akce odpovědi v dialogu.</td></tr>
+              <tr><td><code>{quest}</code></td><td>Viditelný název questu.</td><td>Questové commandy a commandová odměna.</td></tr>
+              <tr><td><code>{quest_id}</code></td><td>Interní ID questu.</td><td>Questové commandy a commandová odměna.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          Placeholder se vkládá jako obyčejný text. Pro technické argumenty používej raději
+          <code>{quest_id}</code> než <code>{quest}</code>, protože viditelný název může obsahovat mezery.
+        </div>
+
+        <h3>Hotové příklady commandů</h3>
+        <div class="command-grid">
+          <article class="command-card">
+            <h4>Dát další odměnu</h4>
+            <p>Tři emeraldy hráči. Pro obyčejný item je lepší standardní pole odměny; command využij pro zvláštní případy.</p>
+            <div class="code-box"><pre>give {player} minecraft:emerald 3</pre><button class="copy-btn" type="button">Kopírovat</button></div>
+          </article>
+          <article class="command-card">
+            <h4>Přidat XP body</h4>
+            <p>Přidá 250 bodů zkušeností. Nejde o 250 celých levelů.</p>
+            <div class="code-box"><pre>experience add {player} 250 points</pre><button class="copy-btn" type="button">Kopírovat</button></div>
+          </article>
+          <article class="command-card">
+            <h4>Označit příběhový stav</h4>
+            <p>Tag pak můžeš použít v podmínce „Hráč má tag“.</p>
+            <div class="code-box"><pre>tag {player} add dorucil_zpravu</pre><button class="copy-btn" type="button">Kopírovat</button></div>
+          </article>
+          <article class="command-card">
+            <h4>Posunout scoreboard</h4>
+            <p>Objective <code>arda_kapitola</code> musí předem existovat.</p>
+            <div class="code-box"><pre>scoreboard players add {player} arda_kapitola 1</pre><button class="copy-btn" type="button">Kopírovat</button></div>
+          </article>
+          <article class="command-card">
+            <h4>Dát efekt</h4>
+            <p>Regenerace na 8 sekund, amplifier 1, bez částic v HUD příkazu podle vanilla syntaxe.</p>
+            <div class="code-box"><pre>effect give {player} minecraft:regeneration 8 1 true</pre><button class="copy-btn" type="button">Kopírovat</button></div>
+          </article>
+          <article class="command-card">
+            <h4>Teleportovat hráče</h4>
+            <p>Pro pevnou pozici. U jednoduchého questu lze použít i vestavěný teleport po dokončení.</p>
+            <div class="code-box"><pre>tp {player} 100 70 -45</pre><button class="copy-btn" type="button">Kopírovat</button></div>
+          </article>
+          <article class="command-card">
+            <h4>Spawn u NPC</h4>
+            <p>Použij v akci dialogové odpovědi, kde jsou dostupné souřadnice NPC.</p>
+            <div class="code-box"><pre>execute positioned {nx} {ny} {nz} run summon minecraft:zombie ~2 ~ ~2</pre><button class="copy-btn" type="button">Kopírovat</button></div>
+          </article>
+          <article class="command-card">
+            <h4>Zpráva hráči</h4>
+            <p>Tellraw umožní barvu a další JSON formátování.</p>
+            <div class="code-box"><pre>tellraw {player} {"text":"Získal jsi důvěru Gondoru.","color":"gold"}</pre><button class="copy-btn" type="button">Kopírovat</button></div>
+          </article>
+          <article class="command-card">
+            <h4>Zvuk na pozici hráče</h4>
+            <p>Hráč uslyší zvuk dokončení na své aktuální pozici.</p>
+            <div class="code-box"><pre>playsound minecraft:entity.player.levelup master {player} {x} {y} {z} 1 1</pre><button class="copy-btn" type="button">Kopírovat</button></div>
+          </article>
+          <article class="command-card">
+            <h4>Udělit advancement</h4>
+            <p>ID musí existovat. Chybu hledej v serverovém logu.</p>
+            <div class="code-box"><pre>advancement grant {player} only minecraft:story/mine_stone</pre><button class="copy-btn" type="button">Kopírovat</button></div>
+          </article>
+        </div>
+
+        <h3>Vestavěné akce v okně „Akce odpovědi“</h3>
+        <p>
+          U <strong>dialogové odpovědi</strong> nabízí editor šablony, které jsou pro běžné použití
+          bezpečnější než skládání commandu:
+          <strong>Zpráva (say)</strong>, <strong>NPC útočí</strong>, <strong>Spawn mobů</strong>,
+          <strong>Efekt hráči</strong> a <strong>Posunout příběhový cíl</strong>.
+          V questových seznamech <em>Akce při přijetí/dokončení/selhání</em> jsou povolené jen
+          obyčejné commandy; prefixy <code>@attack:</code>, <code>@spawn:</code>,
+          <code>@effect:</code> a <code>@objective:</code> patří pouze odpovědím dialogu.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Vestavěná akce</th><th>Pokročilý zápis</th><th>Bezpečné rozsahy</th></tr></thead>
+            <tbody>
+              <tr><td>NPC útočí</td><td><code>@attack:600</code></td><td>Doba v tickách, 20–12 000; 600 = 30 sekund.</td></tr>
+              <tr><td>Spawn mobů</td><td><code>@spawn:minecraft:zombie;count=3;radius=4;targetPlayer=true</code></td><td>Počet 1–10, radius 1–16.</td></tr>
+              <tr><td>Efekt hráči</td><td><code>@effect:minecraft:slowness;duration=100;amplifier=1</code></td><td>Doba 20–12 000 ticků, amplifier 0–4.</td></tr>
+              <tr><td>Posunout příběhový cíl</td><td><code>@objective:quest_id|obj_1|1</code></td><td>Částka 1–10 000; funguje jen pro MANUAL cíl questu vlastněného právě otevřeným NPC.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <details>
+          <summary>Které commandy jsou zablokované</summary>
+          <div>
+            <p>
+              Datové akce nesmí spouštět správu serveru a oprávnění. Blokované jsou:
+              <code>stop</code>, <code>op</code>, <code>deop</code>, <code>ban</code>,
+              <code>ban-ip</code>, <code>pardon</code>, <code>pardon-ip</code>,
+              <code>whitelist</code>, <code>save-off</code>, <code>save-on</code>,
+              <code>save-all</code>, <code>reload</code>, <code>kick</code>,
+              <code>function</code> a <code>schedule</code>.
+            </p>
+            <p>
+              Kontrola platí i pro namespaced podobu a pro nebezpečný command schovaný uvnitř
+              <code>execute … run …</code>. Odmítnutí se zapíše do logu.
+            </p>
+          </div>
+        </details>
+
+        <div class="callout danger">
+          <strong>Command testuj na kopii světa.</strong> I povolený command může změnit velkou část mapy,
+          spawnout mnoho entit nebo rozbít cizí scoreboard. Začni jednoduchou zprávou nebo tagem,
+          ověř log a teprve potom přidej složitější akci.
+        </div>
+      </section>
+
+      <section class="doc-section searchable" id="chat-commands">
+        <p class="section-kicker">Administrace v Minecraft chatu</p>
+        <h2>Všechny chatové příkazy <code>/ardanpcs</code></h2>
+        <p class="intro">
+          Toto jsou přímé administrátorské příkazy modu. Nejde o commandy uložené v questu:
+          nespouští je hráčská odpověď ani odměna a nevztahuje se na ně seznam blokovaných
+          questových commandů.
+        </p>
+
+        <div class="callout">
+          Všechny příkazy v této kapitole vyžadují <strong>OP úroveň 2</strong>.
+          Kořen <code>/ardanpc</code> je úplný alias <code>/ardanpcs</code>, takže například
+          <code>/ardanpc list</code> a <code>/ardanpcs list</code> dělají totéž.
+          Povinné hodnoty jsou v návodu zapsané jako <code>&lt;uuid&gt;</code> nebo
+          <code>&lt;jméno&gt;</code>; špičaté závorky do skutečného příkazu nepiš.
+          Zápis <code>a|b|c</code> znamená „vyber jednu možnost“. UUID získáš přes
+          <code>/ardanpcs list</code> nebo ve Správci NPC. Jméno a text mohou obsahovat mezery
+          bez uvozovek.
+        </div>
+        <details open>
+          <summary>Úplný strom aktuálně dostupných příkazů</summary>
+          <div>
+            <div class="code-box"><pre>/ardanpcs create &lt;jméno&gt;
+/ardanpcs list
+/ardanpcs info &lt;uuid&gt;
+/ardanpcs remove &lt;uuid&gt;
+/ardanpcs save
+/ardanpcs reload
+/ardanpcs manager
+
+/ardanpcs demo quests
+/ardanpcs demo info
+/ardanpcs demo clear
+
+/ardanpcs template list
+/ardanpcs template save &lt;npcUuid&gt; &lt;název&gt;
+/ardanpcs template spawn &lt;templateUuid&gt;
+/ardanpcs template delete &lt;templateUuid&gt;
+
+/ardanpcs set name &lt;uuid&gt; &lt;text&gt;
+/ardanpcs set title &lt;uuid&gt; &lt;text&gt;
+/ardanpcs set mode &lt;uuid&gt; passive|neutral|aggressive
+/ardanpcs set stat &lt;uuid&gt; hp|damage|armor|speed|followrange|attackrange|aggrorange|respawn &lt;hodnota&gt;
+
+/ardanpcs inventory info &lt;uuid&gt;
+/ardanpcs inventory clear &lt;uuid&gt;
+/ardanpcs inventory sethand &lt;uuid&gt; &lt;slot&gt;
+/ardanpcs inventory setarmor &lt;uuid&gt; &lt;slot&gt;</pre><button class="copy-btn" type="button">Kopírovat</button></div>
+            <p>
+              Celou větev <code>template</code> lze napsat také jako <code>preset</code> a celý
+              kořen <code>/ardanpcs</code> jako <code>/ardanpc</code>.
+            </p>
+          </div>
+        </details>
+
+        <h3>Nejrychlejší test: demonstrační balíček</h3>
+        <ol class="steps">
+          <li><b>Postav se na rovnou volnou plochu</b> v testovacím světě. Doporučený prostor je přibližně 45 × 25 bloků; příkaz nehledá bezpečnější výšku terénu.</li>
+          <li><b>Vytvoř balíček:</b> spusť <code>/ardanpcs demo quests</code>.</li>
+          <li><b>Přečti přehled:</b> spusť <code>/ardanpcs demo info</code>.</li>
+          <li><b>Otevři správce:</b> <code>/ardanpcs manager</code> a prohlédni si vytvořená NPC, dialogy a questy.</li>
+          <li><b>Po testu ukliď NPC:</b> spusť <code>/ardanpcs demo clear</code>.</li>
+        </ol>
+        <div class="command-grid">
+          <article class="command-card">
+            <h4>Vytvořit nebo obnovit demo</h4>
+            <p>Nejdřív odstraní stará NPC se jménem začínajícím <code>[DEMO] </code>, potom vytvoří nový balíček.</p>
+            <div class="code-box"><pre>/ardanpcs demo quests</pre><button class="copy-btn" type="button">Kopírovat</button></div>
+          </article>
+          <article class="command-card">
+            <h4>Vypsat obsah dema</h4>
+            <p>Nic nemění. V chatu vypíše, co lze na demo NPC otestovat.</p>
+            <div class="code-box"><pre>/ardanpcs demo info</pre><button class="copy-btn" type="button">Kopírovat</button></div>
+          </article>
+          <article class="command-card">
+            <h4>Odstranit demo NPC</h4>
+            <p>Odstraní živé entity i definice všech NPC s přesným prefixem <code>[DEMO] </code>.</p>
+            <div class="code-box"><pre>/ardanpcs demo clear</pre><button class="copy-btn" type="button">Kopírovat</button></div>
+          </article>
+        </div>
+        <p>
+          Balíček vytvoří čtrnáct NPC se čtrnácti questy a ukazuje TALK, COLLECT, KILL, escort, cooldown,
+          denní/příběhové/vedlejší questy, řetězení questů, odevzdání jinému NPC, předání itemu,
+          větvené dialogy, podmínky navštíveného dialogu, commandové a vestavěné akce i dva
+          ukázkové modely entit. Cíle LOCATION a MANUAL si musíš vytvořit ručně podle této příručky.
+        </p>
+        <div class="callout danger">
+          <strong><code>demo quests</code> i <code>demo clear</code> pracují podle jména.</strong>
+          Odstraní každé NPC, jehož jméno začíná přesně <code>[DEMO] </code>, i kdybys ho vytvořil
+          ručně. Opětovné vytvoření dema dává NPC nová UUID. Příkazy nemažou hráčský questový ani
+          dialogový stav ani dříve vyvolané zombie či aktivní efekty; stav hráče případně oprav
+          přes <strong>Global → Hráčská data…</strong>. Přejmenované demo NPC bez tohoto prefixu
+          naopak příkaz nenajde a nesmaže.
+        </div>
+        <p class="muted">
+          <code>/ardanpcs demo info</code> pouze hledá, zda existuje alespoň jedno NPC s prefixem
+          <code>[DEMO] </code>. Jediné ručně pojmenované NPC s tímto prefixem proto stačí k tomu,
+          aby příkaz oznámil, že demo existuje.
+        </p>
+
+        <h3>Základní správa NPC</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Příkaz</th><th>Co přesně udělá</th><th>Důležité</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><code>/ardanpcs create &lt;jméno&gt;</code></td>
+                <td>Vytvoří nové NPC přibližně dva bloky ve směru, kam se díváš, včetně směru nahoru nebo dolů.</td>
+                <td>Jen hráč ve hře; jméno může obsahovat mezery.</td>
+              </tr>
+              <tr>
+                <td><code>/ardanpcs list</code></td>
+                <td>Vypíše všechna uložená NPC, jejich jména, UUID a hlavní AI režim.</td>
+                <td>Nejde jen o entity v právě načtených chunkech. Výpis nemá stránkování, takže při velkém počtu zaplní chat; UUID potom zkopíruj do dalších příkazů.</td>
+              </tr>
+              <tr>
+                <td><code>/ardanpcs info &lt;uuid&gt;</code></td>
+                <td>Vypíše jméno, titul, AI režim a cíle, aggro dosah, základní staty a domov NPC.</td>
+                <td>Je to rychlá textová kontrola; nezobrazuje každé pokročilé nastavení.</td>
+              </tr>
+              <tr>
+                <td><code>/ardanpcs manager</code></td>
+                <td>Otevře grafický <strong>Správce NPC</strong>.</td>
+                <td>Jen hráč ve hře a na klientovi musí být ArdaNPCs.</td>
+              </tr>
+              <tr>
+                <td><code>/ardanpcs save</code></td>
+                <td>Okamžitě vynutí zápis aktuálních definic NPC a stavu jejich respawn plánovače.</td>
+                <td>Není to úplné uložení Minecraft světa. Je vhodné před <code>/ardanpcs reload</code>, ale nenahrazuje zálohu. Skutečný výsledek zápisu ověř v serverovém logu.</td>
+              </tr>
+              <tr>
+                <td><code>/ardanpcs reload</code></td>
+                <td>Znovu načte definice ze souboru a obnoví právě načtená živá NPC.</td>
+                <td>Nejdřív samo neukládá: bezpečné pořadí je <code>/ardanpcs save</code> a potom <code>/ardanpcs reload</code>. Chybějící NPC automaticky nespawnuje; obnov ho přes <strong>Správce NPC → Respawn</strong>.</td>
+              </tr>
+              <tr>
+                <td><code>/ardanpcs remove &lt;uuid&gt;</code></td>
+                <td>Smaže definici NPC, jeho načtené živé entity a čekající respawn.</td>
+                <td>Je nevratný a nemá potvrzovací okno. Nečistí automaticky hráčský questový stav ani UUID odkazy z ostatních NPC.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Rychlá změna jména, režimu a statů</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Příkaz</th><th>Funkce</th><th>Příklad</th></tr></thead>
+            <tbody>
+              <tr><td><code>/ardanpcs set name &lt;uuid&gt; &lt;text&gt;</code></td><td>Změní viditelné jméno NPC.</td><td><code>/ardanpcs set name &lt;uuid&gt; Strážce Minas Tirith</code></td></tr>
+              <tr><td><code>/ardanpcs set title &lt;uuid&gt; &lt;text&gt;</code></td><td>Změní titul pod jménem.</td><td><code>/ardanpcs set title &lt;uuid&gt; Kapitán Bílé věže</code>; prázdný titul vyčisti v GUI.</td></tr>
+              <tr><td><code>/ardanpcs set mode &lt;uuid&gt; passive</code></td><td>NPC samo nezahajuje běžný boj.</td><td>Další volby jsou <code>neutral</code> a <code>aggressive</code>.</td></tr>
+              <tr><td><code>/ardanpcs set stat &lt;uuid&gt; &lt;klíč&gt; &lt;hodnota&gt;</code></td><td>Změní jednu číselnou vlastnost.</td><td>Například <code>/ardanpcs set stat &lt;uuid&gt; hp 40</code>.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Klíč statu</th><th>Význam v aktuální verzi</th></tr></thead>
+            <tbody>
+              <tr><td><code>hp</code></td><td>Maximální zdraví NPC. Samotná změna NPC automaticky plně nevyléčí.</td></tr>
+              <tr><td><code>damage</code></td><td>Základní útočné poškození.</td></tr>
+              <tr><td><code>armor</code></td><td>Hodnota brnění.</td></tr>
+              <tr><td><code>speed</code></td><td>Rychlost pohybu.</td></tr>
+              <tr><td><code>aggrorange</code></td><td>Funkční aggro/detekční dosah AI; desetinná část se zahodí a hodnota se omezí do rozsahu 1–64.</td></tr>
+              <tr><td><code>followrange</code></td><td>Legacy pole. Příkaz ho uloží, ale současný runtime používá místo něj <code>aggrorange</code>, takže nemá herní účinek.</td></tr>
+              <tr><td><code>attackrange</code></td><td>Legacy pole bez herního účinku v současném runtime; skutečný dosah nastav v bojové části editoru.</td></tr>
+              <tr><td><code>respawn</code></td><td>Legacy pole bez herního účinku v současném runtime; respawn nastav v editoru NPC.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          Příkaz <code>set stat</code> nepoužívá všechna bezpečná omezení grafického editoru.
+          Pro produkční NPC nastavuj staty raději v editoru; chatový příkaz používej na rychlý
+          test a potom výsledek ověř přes <code>/ardanpcs info &lt;uuid&gt;</code> i přímo ve hře.
+          Také <code>set name</code> a <code>set title</code> nemají stejné délkové kontroly jako
+          GUI; uvozovky nejsou potřeba a při jejich napsání se uloží jako součást textu.
+        </div>
+
+        <h3>Inventář NPC z chatu</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Příkaz</th><th>Co udělá</th><th>Poznámka</th></tr></thead>
+            <tbody>
+              <tr><td><code>/ardanpcs inventory info &lt;uuid&gt;</code></td><td>Vypíše šest slotů výbavy, jejich šance na drop a rozsah XP.</td><td>Nevypisuje samostatné loot sloty ani projektil.</td></tr>
+              <tr><td><code>/ardanpcs inventory clear &lt;uuid&gt;</code></td><td>Vrátí celý inventář NPC na prázdný stav.</td><td>Smaže výbavu, projektil, samostatný loot, drop šance i nastavený XP rozsah.</td></tr>
+              <tr><td><code>/ardanpcs inventory sethand &lt;uuid&gt; &lt;slot&gt;</code></td><td>Zkopíruje stack z hlavní ruky OP do zvoleného slotu NPC.</td><td>Jen hráč ve hře; prázdná ruka vybraný slot vyčistí.</td></tr>
+              <tr><td><code>/ardanpcs inventory setarmor &lt;uuid&gt; &lt;slot&gt;</code></td><td>Provádí stejnou slotovou operaci jako <code>sethand</code>.</td><td>Název příkazu neomezuje výběr jen na armor sloty.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Platné názvy slotů jsou přesně a s rozlišením velikosti písmen:
+          <code>mainHand</code>, <code>offHand</code>, <code>head</code>,
+          <code>chest</code>, <code>legs</code> a <code>feet</code>.
+        </p>
+
+        <h3>Šablony neboli presety</h3>
+        <p>
+          Slovo <code>preset</code> je úplný alias <code>template</code>. Každý příkaz níže tedy
+          funguje také například jako <code>/ardanpcs preset list</code>.
+          Hráčské operace se šablonami mají společný limit čtyř požadavků za sekundu.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Příkaz</th><th>Co udělá</th><th>Bezpečnost</th></tr></thead>
+            <tbody>
+              <tr><td><code>/ardanpcs template list</code></td><td>Vypíše uložené šablony a jejich UUID.</td><td>Ukáže také zdrojové NPC a počet záměrně vynechaných dialogů/questů.</td></tr>
+              <tr><td><code>/ardanpcs template save &lt;npcUuid&gt; &lt;název&gt;</code></td><td>Uloží bezpečnou kopii persistentního nastavení NPC.</td><td>Nekopíruje dialogy, questy ani rozehraný stav. Název má nejvýše 48 znaků a musí být unikátní bez ohledu na velikost písmen; limit je 128 šablon.</td></tr>
+              <tr><td><code>/ardanpcs template spawn &lt;templateUuid&gt;</code></td><td>Vytvoří kopii ze šablony na pozici hráče.</td><td>Jen hráč ve hře. Kopie dostane nové UUID a nový domov; před spuštěním si udělej místo.</td></tr>
+              <tr><td><code>/ardanpcs template delete &lt;templateUuid&gt;</code></td><td>Smaže uloženou šablonu bez potvrzovacího okna.</td><td>Zdrojové i již vytvořené NPC z této šablony zůstanou zachována.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <details>
+          <summary>Které příkazy vyžadují hráče a které lze spustit z konzole</summary>
+          <div>
+            <p>
+              Hráče ve světě vyžadují <code>create</code>, <code>manager</code>,
+              <code>demo quests</code>, <code>template spawn</code>,
+              <code>inventory sethand</code> a <code>inventory setarmor</code>.
+              Ostatní příkazy mohou při dostatečném oprávnění běžet také ze serverové konzole.
+            </p>
+          </div>
+        </details>
+        <div class="callout warn">
+          V příkazovém stromu není <code>/ardanpcs reset</code> ani
+          <code>/ardanpcs cleanup</code>. Konkrétní hráčský quest, dialog nebo reputaci opravuj
+          přes <strong>Global → Hráčská data…</strong>; soubory světa za běhu neupravuj ručně.
+        </div>
+        <details>
+          <summary>Staré nebo plánované příkazy, které v aktuálním modu neexistují</summary>
+          <div>
+            <p>
+              Aktuální verze neregistruje ani samostatný <code>/ardanpcs help</code>,
+              <code>/ardanpcs edit</code>,
+              <code>/ardanpcs clone</code>, <code>/ardanpcs select</code>,
+              <code>/ardanpcs preset load</code>, <code>/ardanpcdev</code> ani žádné scriptingové
+              příkazy. Pokud je najdeš ve starém plánu nebo chatu, nepoužívej je jako návod pro
+              současný build.
+            </p>
+          </div>
+        </details>
+      </section>
+
+      <section class="doc-section searchable" id="escort">
+        <p class="section-kicker">Trasy</p>
+        <h2>Escort quest bez zaseknutého NPC</h2>
+        <p class="intro">
+          Escort je nejnáročnější typ questu. Pro skutečný server používej
+          <strong>blokovou trasu</strong>; ruční body jsou vhodné hlavně pro rychlý test.
+        </p>
+        <ol class="steps">
+          <li><b>Postav trasu.</b> V creative záložce použij <strong>Bod trasy</strong> a <strong>Konec trasy</strong>.</li>
+          <li><b>Stejné Trasa ID.</b> Všechny body musí mít stejné ID a pořadí 1, 2, 3…; Konec trasy je poslední.</li>
+          <li><b>Vyber escort NPC.</b> V questu zadej jeho jednoznačné jméno nebo UUID.</li>
+          <li><b>Zvol Bloková trasa.</b> Zadej Trasa ID a klikni <strong>Ověřit</strong>. Platná trasa má alespoň dva body a finish.</li>
+          <li><b>Nastav rychlost.</b> Rozsah je 0.2–3.0; výchozí 1.0 je rozumný začátek.</li>
+          <li><b>Projdi terén.</b> Testuj dveře, vodu, schody, úzká místa, chunk hranice, boj a smrt NPC.</li>
+        </ol>
+        <div class="callout warn">
+          Pole <strong>Max. vzdálenost</strong> omezuje escort logiku, ale skutečné selhání při vzdálení
+          závisí na pokročilé volbě <em>failOnPlayerFar</em>. Pokud ji aktuální obrazovka nenabízí,
+          nespoléhej jen na vzdálenost a otestuj přesné chování své sestavy.
+        </div>
+        <details>
+          <summary>Auto-dokončit vs. ruční odevzdání</summary>
+          <div>
+            <p><strong>Zapnuto:</strong> po dosažení cíle se quest automaticky dokončí, pokud jsou splněné i ostatní cíle.</p>
+            <p><strong>Vypnuto:</strong> escort cíl se označí hotový, ale hráč se musí vrátit k odevzdávacímu NPC a kliknout na dokončovací odpověď.</p>
+          </div>
+        </details>
+      </section>
+
+      <section class="doc-section searchable" id="manual">
+        <p class="section-kicker">Příběhové mechaniky</p>
+        <h2>Ruční příběhový krok</h2>
+        <p>
+          Tento cíl se neposouvá zabitím, itemem ani příchodem na místo. Posouvá ho pouze serverová
+          dialogová akce <strong>Posunout příběhový cíl</strong>. Je ideální pro příběhové volby nebo
+          interakce, které mod sám nemůže automaticky rozpoznat.
+        </p>
+        <ol class="steps">
+          <li><b>Typ cíle:</b> zvol <strong>Ruční / příběhový krok</strong>.</li>
+          <li><b>Počet:</b> nastav například <code>3</code>, pokud má hráč projít třemi příběhovými body.</li>
+          <li><b>V odpovědi otevři Akce:</b> klikni na šablonu <strong>Posunout příběhový cíl</strong>.</li>
+          <li><b>Parametr:</b> <code>tvoje_quest_id|obj_1|1</code>. <code>obj_1</code> je hlavní cíl vytvořený editorem.</li>
+          <li><b>Vlastník questu:</b> odpověď musí být v dialogu stejného NPC, které tento quest zadává.</li>
+          <li><b>Zabraň opakování:</b> použij navštívený dialog, tag nebo jinou podmínku, aby hráč stejný krok neklikal stále dokola.</li>
+        </ol>
+        <div class="code-box"><pre>@objective:tvoje_quest_id|obj_1|1</pre><button class="copy-btn" type="button">Kopírovat</button></div>
+        <div class="callout">
+          Posun ručního cíle je transakční akce. Stav se nejdřív bezpečně uloží a až potom se provedou
+          ostatní commandy nebo navigace této odpovědi.
+        </div>
+      </section>
+
+      <section class="doc-section searchable" id="testing">
+        <p class="section-kicker">Před publikováním</p>
+        <h2>Testovací checklist</h2>
+        <p class="intro">Zaškrtávání zůstane uložené jen v tomto prohlížeči. Reset ho vymaže.</p>
+        <div class="checklist" id="questChecklist">
+          <label class="check-item"><input type="checkbox" data-check="1"><span>Quest lze přijmout jako běžný hráč bez OP.</span></label>
+          <label class="check-item"><input type="checkbox" data-check="2"><span>Po přijetí se objeví v deníku na klávese L.</span></label>
+          <label class="check-item"><input type="checkbox" data-check="3"><span>Popis a všechny texty jsou srozumitelné.</span></label>
+          <label class="check-item"><input type="checkbox" data-check="4"><span>Postup cíle se počítá přesně a jen správnému hráči.</span></label>
+          <label class="check-item"><input type="checkbox" data-check="5"><span>Odevzdání není vidět před splněním cíle.</span></label>
+          <label class="check-item"><input type="checkbox" data-check="6"><span>Spotřebované itemy se odeberou jen jednou.</span></label>
+          <label class="check-item"><input type="checkbox" data-check="7"><span>XP, itemy, reputace a commandy se nevydají dvakrát; otestuj i zotavení po nuceném pádu na kopii serveru.</span></label>
+          <label class="check-item"><input type="checkbox" data-check="8"><span>Plný inventář nezpůsobí tichou ztrátu odměny.</span></label>
+          <label class="check-item"><input type="checkbox" data-check="9"><span>Odpojení a připojení zachová aktivní postup.</span></label>
+          <label class="check-item"><input type="checkbox" data-check="10"><span>Restart serveru zachová aktivní i dokončený quest.</span></label>
+          <label class="check-item"><input type="checkbox" data-check="11"><span>Opakování a cooldown fungují podle nastavení.</span></label>
+          <label class="check-item"><input type="checkbox" data-check="12"><span>Selhání, retry a fail command jsou otestované.</span></label>
+          <label class="check-item"><input type="checkbox" data-check="13"><span>Pokus o přijetí navazujícího questu respektuje stav, opakování a cooldown a nevytvoří cyklus.</span></label>
+          <label class="check-item"><input type="checkbox" data-check="14"><span>V latest.log nejsou chyby commandů ani neplatná ID.</span></label>
+        </div>
+        <button class="btn" id="resetChecklist" type="button">Resetovat checklist</button>
+      </section>
+
+      <section class="doc-section searchable" id="troubleshooting">
+        <p class="section-kicker">Diagnostika</p>
+        <h2>Když quest nefunguje</h2>
+        <details open>
+          <summary>NPC po kliknutí quest nenabídne</summary>
+          <div>
+            <ul>
+              <li>Ověř, že existuje dialog a je označený <strong>Nastavit jako start</strong>.</li>
+              <li>Ověř, že odpověď má <strong>Přijmout quest</strong> a správné ID.</li>
+              <li>Zkontroluj podmínky: hráč už mohl quest dokončit, mít cooldown nebo aktivní starý pokus.</li>
+              <li>Po změně klikni nahoře na <strong>Uložit</strong>.</li>
+            </ul>
+          </div>
+        </details>
+        <details>
+          <summary>Quest nejde odevzdat</summary>
+          <div>
+            <ul>
+              <li>Zkontroluj deník <kbd>L</kbd> a stav všech cílů.</li>
+              <li>U itemu ověř namespace, počet a přítomnost v inventáři.</li>
+              <li>U TALK cíle klikni na cílové NPC. Cíl se splní okamžitě; potvrzovací odpověď je nutná jen tehdy, pokud na ní máš další akce.</li>
+              <li>U LOCATION ověř dimenzi, souřadnice a radius.</li>
+              <li>Dokončovací odpověď musí mířit na stejný quest, který hráč přijal.</li>
+            </ul>
+          </div>
+        </details>
+        <details>
+          <summary>Command se nespustí</summary>
+          <div>
+            <ul>
+              <li>Odeber úvodní <code>/</code> a zkontroluj přesnou vanilla syntaxi pro Minecraft 1.21.8.</li>
+              <li>Zkontroluj <code>logs/latest.log</code> na <code>[ArdaNPCs Action]</code>.</li>
+              <li>Ověř, zda command není na blokovaném seznamu.</li>
+              <li>U odpovědi s questovou akcí musí nejdřív úspěšně proběhnout přijetí, dokončení nebo ruční posun.</li>
+              <li>Fail command se při selhání offline hráče záměrně nespustí.</li>
+            </ul>
+          </div>
+        </details>
+        <details>
+          <summary>Hráč má rozbitý nebo zaseknutý quest</summary>
+          <div>
+            <p>
+              OP otevře <strong>Global → Hráčská data</strong>, vyhledá hráče a v kartě
+              <strong>Questy</strong> může resetovat konkrétní quest nebo konkrétní cíl.
+              Hromadný reset je oddělený v nebezpečné části a vyžaduje potvrzení.
+            </p>
+          </div>
+        </details>
+      </section>
+
+      <section class="doc-section searchable" id="storage">
+        <p class="section-kicker">Trvalost dat</p>
+        <h2>Co se stane po restartu serveru</h2>
+        <p>
+          Postup se ukládá po jednotlivých hráčích do světa. Restart serveru zachová aktivní cíle,
+          dokončené questy, cooldowny, selhání i historii navštívených dialogů.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Umístění</th><th>Obsah</th><th>Poznámka</th></tr></thead>
+            <tbody>
+              <tr><td><code>&lt;svět&gt;/data/ardanpcs/player_quests/&lt;UUID&gt;.json</code></td><td>Questový a dialogový stav jednoho hráče.</td><td>Změna hráče nepřepisuje soubor všech ostatních.</td></tr>
+              <tr><td><code>&lt;svět&gt;/data/ardanpcs/player_quest_wal/&lt;UUID&gt;.json</code></td><td>Krátkodobá ochrana kritické transakce.</td><td>Chrání hlavně proti dvojímu vydání. Při pádu v krajně krátkém okamžiku po uložení dokončení může odměna zůstat nevydaná.</td></tr>
+              <tr><td><code>.bak</code></td><td>Poslední bezpečná záloha datového souboru.</td><td>Mod ji umí použít při poškození hlavní kopie.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout">
+          Odměny a účinky jsou chráněné proti dvojímu vydání. WAL ale negarantuje doručení
+          „přesně jednou“: při pádu serveru v krajně krátkém okamžiku po uložení dokončení
+          může být odměna nevydaná. OP musí případ ověřit v serverovém logu a potom zvolit
+          bezpečnou nápravu — například kompenzační odměnu nebo reset celého questu.
+        </div>
+        <h3>Bezpečná oprava dat konkrétního hráče</h3>
+        <ol class="steps">
+          <li><b>Otevři správu:</b> jako OP přejdi na <strong>Global → Hráčská data…</strong>. Obrazovka se jmenuje <strong>Správa hráčských dat</strong>.</li>
+          <li><b>Najdi hráče:</b> použij online jméno nebo UUID. U offline hráče, jehož jméno server nezná, je UUID nejjistější.</li>
+          <li><b>Vyber kartu:</b> <strong>Questy</strong>, <strong>Dialogy</strong> nebo <strong>Reputace</strong>. Pokud záznam nevidíš, použij tlačítka <strong>‹ Strana</strong> / <strong>Strana ›</strong>.</li>
+          <li><b>Klikni na přesný řádek:</b> opravné tlačítko se zpřístupní až po výběru konkrétního záznamu.</li>
+          <li><b>Potvrď přesnou opravu:</b> přečti rozsah změny v okně <strong>Potvrdit přesnou opravu</strong>. Pokud se stav mezitím změnil, dej <strong>Obnovit</strong>, záznam znovu vyber a opakuj akci.</li>
+        </ol>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Karta</th><th>Jednotlivé bezpečné opravy</th><th>Omezení</th></tr></thead>
+            <tbody>
+              <tr><td>Questy</td><td><strong>Resetovat celý quest</strong>; u aktivního questu také reset konkrétního cíle.</td><td>Konkrétní cíl se nenabízí u dokončeného, selhaného ani pouze cooldown záznamu.</td></tr>
+              <tr><td>Dialogy</td><td><strong>Resetovat historii NPC</strong> nebo <strong>Odebrat jen tento dialog</strong>.</td><td>Ostatní questová a reputační data zůstanou zachována.</td></tr>
+              <tr><td>Reputace</td><td><strong>Resetovat tuto reputaci</strong>.</td><td>Menu neumí zadat vlastní číselnou hodnotu.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout danger">
+          Hromadná volba <strong>Questy + dialogy</strong> smaže všechny questy i celou historii
+          dialogů hráče. Další volby jsou <strong>Reset celé reputace</strong> a
+          <strong>Questy, dialogy i reputace</strong>. Správa neumí ručně nastavit počet postupu,
+          označit quest jako hotový ani nastavit reputaci na zadané číslo.
+        </div>
+        <div class="callout danger">
+          Tyto JSON soubory neupravuj ručně za běhu serveru. Pro opravu hráče použij
+          <strong>Global → Hráčská data</strong> a před hromadnou změnou zazálohuj celý svět.
+        </div>
+      </section>
+
+      <section class="doc-section searchable" id="limits">
+        <p class="section-kicker">Technické hranice</p>
+        <h2>Limity, které je dobré znát</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Část</th><th>Limit</th><th>Co se stane</th></tr></thead>
+            <tbody>
+              <tr><td>Dialogy jednoho NPC</td><td>32</td><td>Přebytek server při sanitizaci neuloží.</td></tr>
+              <tr><td>Questy jednoho NPC</td><td>32</td><td>Pro větší příběh rozděl zadavatele nebo kapitoly.</td></tr>
+              <tr><td>Odpovědi v dialogu</td><td>6</td><td>Další volby rozděl do navazujícího uzlu.</td></tr>
+              <tr><td>Cíle v jednom questu</td><td>8</td><td>Běžný grafický editor upravuje hlavně první cíl; složitá data používej opatrně.</td></tr>
+              <tr><td>Odměny v questu</td><td>4</td><td>Pro další efekt využij akce při dokončení.</td></tr>
+              <tr><td>Podmínky odpovědi</td><td>8</td><td>Použij A ZÁROVEŇ nebo NEBO.</td></tr>
+              <tr><td>Commandy / extra akce odpovědi</td><td>8</td><td>Drž akce krátké a srozumitelné.</td></tr>
+              <tr><td>Požadovaný počet cíle</td><td>1–10 000</td><td>Server hodnotu omezí do bezpečného rozsahu.</td></tr>
+              <tr><td>Reputační změny v questu</td><td>4 datové položky</td><td>Běžné UI upravuje hlavní Dobro/Zlo změnu.</td></tr>
+              <tr><td>Escort waypointy</td><td>64 ručních bodů / 8 alternativních route ID</td><td>Pro delší trasu používej rozumně rozdělené blokové trasy.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="muted">
+          Aktuální grafický editor zobrazuje všech šest typů cíle. Složitější nebo starší questy
+          mohou být označené jako „Složitější quest“ a upravují se přes Rozšířené nastavení.
+        </p>
+      </section>
+
+      <section class="doc-section searchable" id="quick-reference">
+        <p class="section-kicker">Tahák</p>
+        <h2>Nejkratší správný recept</h2>
+        <div class="two-col">
+          <div>
+            <h3>Quest</h3>
+            <ol>
+              <li>Unikátní ID a název.</li>
+              <li>Jeden konkrétní cíl.</li>
+              <li>Odměna a opakování.</li>
+              <li>Startovní dialog.</li>
+              <li>Odpověď Přijmout.</li>
+              <li>Odpověď Odevzdat.</li>
+              <li>Uložit a test bez OP.</li>
+            </ol>
+          </div>
+          <div>
+            <h3>Command</h3>
+            <ol>
+              <li>Bez úvodního <code>/</code>.</li>
+              <li>Použij <code>{player}</code>.</li>
+              <li>Nejdřív testovací <code>tellraw</code>.</li>
+              <li>Ověř přesné načasování akce.</li>
+              <li>Zkontroluj <code>latest.log</code>.</li>
+              <li>Teprve potom přidej odměnu/spawn/teleport.</li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        ArdaNPCs — česká kronika tvorby questů • samostatný offline dokument • aktualizováno 17. 7. 2026
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const normalize = value => String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+
+      const search = document.getElementById("search");
+      const clearSearch = document.getElementById("clearSearch");
+      const sections = [...document.querySelectorAll(".searchable")];
+      const noResults = document.getElementById("noResults");
+
+      function runSearch() {
+        const query = normalize(search.value.trim());
+        let visible = 0;
+        sections.forEach(section => {
+          const matches = !query || normalize(section.textContent).includes(query);
+          section.classList.toggle("search-hidden", !matches);
+          if (matches) visible++;
+        });
+        noResults.classList.toggle("visible", Boolean(query) && visible === 0);
+      }
+      search.addEventListener("input", runSearch);
+      clearSearch.addEventListener("click", () => {
+        search.value = "";
+        runSearch();
+        search.focus();
+      });
+
+      const tocLinks = [...document.querySelectorAll(".toc a")];
+      const observed = tocLinks
+        .map(link => document.querySelector(link.getAttribute("href")))
+        .filter(Boolean);
+      const observer = new IntersectionObserver(entries => {
+        const current = entries
+          .filter(entry => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (!current) return;
+        tocLinks.forEach(link => {
+          link.classList.toggle("active", link.getAttribute("href") === "#" + current.target.id);
+        });
+      }, { rootMargin: "-18% 0px -65% 0px", threshold: [0, .1, .5] });
+      observed.forEach(section => observer.observe(section));
+
+      document.querySelectorAll(".objective-toolbar button").forEach(button => {
+        button.addEventListener("click", () => {
+          const filter = button.dataset.filter;
+          document.querySelectorAll(".objective-toolbar button").forEach(b => b.classList.remove("active"));
+          button.classList.add("active");
+          document.querySelectorAll(".objective-card").forEach(card => {
+            card.dataset.hidden = String(filter !== "all" && card.dataset.kind !== filter);
+          });
+        });
+      });
+
+      document.querySelectorAll(".copy-btn").forEach(button => {
+        button.addEventListener("click", async () => {
+          const text = button.closest(".code-box").querySelector("pre").textContent.trim();
+          try {
+            await navigator.clipboard.writeText(text);
+            button.textContent = "Zkopírováno";
+            button.classList.add("copied");
+            setTimeout(() => {
+              button.textContent = "Kopírovat";
+              button.classList.remove("copied");
+            }, 1500);
+          } catch {
+            const range = document.createRange();
+            range.selectNodeContents(button.closest(".code-box").querySelector("pre"));
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            button.textContent = "Označeno";
+          }
+        });
+      });
+
+      const expandAll = document.getElementById("expandAll");
+      let detailsOpen = false;
+      expandAll.addEventListener("click", () => {
+        detailsOpen = !detailsOpen;
+        document.querySelectorAll("details").forEach(detail => detail.open = detailsOpen);
+        expandAll.textContent = detailsOpen ? "Sbalit" : "Rozbalit";
+      });
+
+      const checklist = [...document.querySelectorAll("#questChecklist input[type=checkbox]")];
+      const storageKey = "ardanpcs-quest-manual-checklist-v1";
+      try {
+        const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
+        checklist.forEach(input => input.checked = saved.includes(input.dataset.check));
+      } catch {}
+      function saveChecklist() {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(
+            checklist.filter(input => input.checked).map(input => input.dataset.check)
+          ));
+        } catch {}
+      }
+      checklist.forEach(input => input.addEventListener("change", saveChecklist));
+      document.getElementById("resetChecklist").addEventListener("click", () => {
+        checklist.forEach(input => input.checked = false);
+        saveChecklist();
+      });
+    })();
+  </script>
+</body>
+</html>
